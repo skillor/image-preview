@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style> 
+            #container {
+                display: flex;
+                flex-wrap: wrap;
+            }
+        </style>
+        <style id="size-style"></style>
+        <style id="background-style"></style>
+        <script>
+            function setImageSize(size) {
+                document.getElementById('size-style').innerHTML = `#container img {
+    width: ${size}px;
+    max-width: ${size}px;
+    max-height: ${size}px;
+}`;
+            }
+
+            function setBackgroundColor(color) {
+                document.getElementById('background-style').innerHTML = `body {
+    background-color: ${color};
+}`;
+            }
+
+            setImageSize(100);
+            setBackgroundColor('#ffffff');
+
+            function openFolder() {
+                var input = document.createElement('input');
+                input.type = 'file';
+                input.style.display = 'none';
+                input.webkitdirectory = true;
+                input.mozdirectory = true;
+
+                document.body.appendChild(input);
+
+                var onEnd = () => {
+                    document.body.removeChild(input);
+                };
+
+                var handleEvent = () => {
+                    if (!input.files || input.files.length == 0) {
+                        return onEnd();
+                    }
+                    var container = document.getElementById('container');
+                    container.innerHTML = '';
+                    var extensions = document.getElementById('extensions').value.split(',').map((v) => v.trim());
+                    for (var i = 0; i < input.files.length; i++) {
+                        var file = input.files[i];
+                        if (!extensions.includes(file.webkitRelativePath.split('.').pop())) continue;
+                        var img = document.createElement('img');
+                        img.src = URL.createObjectURL(file);
+                        img.title = file.webkitRelativePath;
+                        container.append(img);
+                    }
+                    
+                    onEnd();
+                };
+
+                input.onchange = () => handleEvent();
+                input.oncancel = () => handleEvent();
+
+                input.click();
+            }
+
+            function search(value) {
+                var container = document.getElementById('container');
+                for (var child of container.children) {
+                    if (child.title.includes(value)) {
+                        child.style.display = '';
+                    } else {
+                        child.style.display = 'none';
+                    }
+                }
+            }
+        </script>
+    </head>
+    <body>
+        <div>
+            <button onclick="openFolder()">Open Folder</button>
+            <label for="extensions">File extensions:</label>
+            <input id="extensions" style="width: 100px;" type="text" value="svg, webp, png, jpg" />
+            <label for="size">Image size in px:</label>
+            <input id="size" style="width: 50px;" onkeyup="setImageSize(this.value)" onmouseup="setImageSize(this.value)" type="number" min="0" value="100" />
+            <input type="color" onchange="setBackgroundColor(this.value)" value="#ffffff" />
+        </div>
+        <label for="search">Search:</label>
+        <input id="search" onkeyup="search(this.value)" onmouseup="search(this.value)" />
+        <div id="container"></div>
+    </body>
+</html>
